@@ -25,7 +25,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.repository.CrudRepository;
 import schwabe.code.services.SpringContext;
 
+import java.beans.IntrospectionException;
+import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -33,10 +36,10 @@ import java.util.stream.StreamSupport;
 
 public class AutoGrid<T, ID, R extends CrudRepository<T, ID>> extends Composite<Div> {
 
-    private final Grid<T> grid;
     private BeanValidationBinder<T> binder;
     private FormLayout formLayout;
 
+    private final Grid<T> grid;
     private final Class<R> repository;
     private final Class<T> bean;
     private final Map<Field, HasValue<?,?>> fieldHasValueMap;
@@ -72,9 +75,9 @@ public class AutoGrid<T, ID, R extends CrudRepository<T, ID>> extends Composite<
         fieldHasValueMap.forEach((key, value) -> {
             formLayout.getChildren().filter(component -> component.equals(value)).findFirst().ifPresent(component -> {
                 try {
-                    key.setAccessible(true);
-                    ((HasListDataView) component).setItems((Collection<?>) key.get(object));
-                } catch (IllegalAccessException e) {
+                    var val = new PropertyDescriptor(key.getName(), this.bean).getReadMethod().invoke(object);
+                    ((HasListDataView) component).setItems((Collection<?>) val);
+                } catch (IllegalAccessException | IntrospectionException | InvocationTargetException e) {
                     throw new RuntimeException(e);
                 }
             });
@@ -177,6 +180,4 @@ public class AutoGrid<T, ID, R extends CrudRepository<T, ID>> extends Composite<
         this.grid.select(null);
         this.grid.getDataProvider().refreshAll();
     }
-
-
 }
