@@ -1,10 +1,15 @@
 package schwabe.code.services;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import schwabe.code.data.Role;
 import schwabe.code.data.SamplePerson;
 import schwabe.code.data.SamplePersonRepository;
 
@@ -13,8 +18,12 @@ public class SamplePersonService {
 
     private final SamplePersonRepository repository;
 
+
     public SamplePersonService(SamplePersonRepository repository) {
         this.repository = repository;
+        SamplePerson person1 = new SamplePerson("String firstName", "String lastName", "email@email.com", "019191", LocalDate.now(), "occupation", List.of(Role.MANAGER, Role.SUPERVISOR), true);
+        SamplePerson person2 = new SamplePerson("Pascal", "Schwabe", "email@email.com", "019191", LocalDate.now(), "occupation", List.of(Role.EXTERNAL, Role.WORKER), false);
+        this.repository.saveAll(List.of(person1, person2));
     }
 
     public Optional<SamplePerson> get(Long id) {

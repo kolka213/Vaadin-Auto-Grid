@@ -6,6 +6,7 @@ import com.vaadin.flow.component.HasValue;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.datetimepicker.DateTimePicker;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -19,6 +20,7 @@ import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.ValidationException;
+import com.vaadin.flow.data.provider.HasListDataView;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.repository.CrudRepository;
 import schwabe.code.services.SpringContext;
@@ -26,68 +28,93 @@ import schwabe.code.services.SpringContext;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Date;
+import java.util.*;
 import java.util.stream.StreamSupport;
 
 public class AutoGrid<T, ID, R extends CrudRepository<T, ID>> extends Composite<Div> {
 
-    private final SplitLayout splitLayout;
-
     private final Grid<T> grid;
+    private BeanValidationBinder<T> binder;
+    private FormLayout formLayout;
 
     private final Class<R> repository;
     private final Class<T> bean;
-    private BeanValidationBinder<T> binder;
+    private final Map<Field, HasValue<?,?>> fieldHasValueMap;
 
     public AutoGrid(Class<T> bean, Class<R> repository) {
         this.bean = bean;
         this.repository = repository;
-        this.splitLayout = new SplitLayout();
-        this.splitLayout.setSplitterPosition(80);
         this.grid = new Grid<>(this.bean);
-        this.populateData(this.repository);
+        this.fieldHasValueMap = new HashMap<>();
+        var splitLayout = new SplitLayout();
+        splitLayout.setSplitterPosition(80);
+        splitLayout.addToPrimary(this.grid);
 
-        this.splitLayout.addToPrimary(this.grid);
-        this.createEditorLayout(this.splitLayout);
+        this.populateData(this.repository);
+        this.createEditorLayout(splitLayout);
 
         this.grid.asSingleSelect().addValueChangeListener(event -> {
             if (event.getValue() != null) {
                 this.binder.setBean(event.getValue());
+                this.repopulateListFieldComponents(this.fieldHasValueMap, this.formLayout, event.getValue());
             } else {
                 this.clearForm();
             }
         });
+
 
         this.getContent().add(splitLayout);
         this.getContent().setWidthFull();
         this.addClassNames("master-detail-view");
     }
 
+    private void repopulateListFieldComponents(Map<Field, HasValue<?, ?>> fieldHasValueMap, FormLayout formLayout, T object) {
+        fieldHasValueMap.forEach((key, value) -> {
+            formLayout.getChildren().filter(component -> component.equals(value)).findFirst().ifPresent(component -> {
+                try {
+                    key.setAccessible(true);
+                    ((HasListDataView) component).setItems((Collection<?>) key.get(object));
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        });
+    }
+
     private void populateData(Class<R> repository) {
-        CrudRepository<T, ID> instance = SpringContext.getBean(repository);
-        grid.setItems(StreamSupport.stream(instance.findAll().spliterator(), false).toList());
+        var instance = SpringContext.getBean(repository);
+        this.grid.setItems(StreamSupport.stream(instance.findAll().spliterator(), false).toList());
     }
 
     private void createEditorLayout(SplitLayout splitLayout) {
-        Div editorLayoutDiv = new Div();
+        var editorLayoutDiv = new Div();
         editorLayoutDiv.setClassName("editor-layout");
 
-        Div editorDiv = new Div();
+        var editorDiv = new Div();
         editorDiv.setClassName("editor");
         editorLayoutDiv.add(editorDiv);
 
-        FormLayout formLayout = new FormLayout();
+        this.formLayout = new FormLayout();
         this.binder = new BeanValidationBinder<>(this.bean);
-        Arrays.stream(this.bean.getDeclaredFields()).forEachOrdered(field -> {
-            HasValue<?, ?> fieldComponent = createFieldOfType(field);
-            binder.forField(fieldComponent).bind(field.getName());
-            formLayout.add((Component) fieldComponent);
-        });
+        this.createFieldsFromBeanFields();
 
-        editorDiv.add(formLayout);
+        editorDiv.add(this.formLayout);
         this.createButtonLayout(editorLayoutDiv);
         splitLayout.addToSecondary(editorLayoutDiv);
+    }
+
+    private void createFieldsFromBeanFields() {
+        Arrays.stream(this.bean.getDeclaredFields()).forEachOrdered(field -> {
+            var fieldComponent = createFieldOfType(field);
+            if (Collection.class.isAssignableFrom(field.getType())){
+                this.fieldHasValueMap.put(field, fieldComponent);
+                this.formLayout.add((Component) fieldComponent);
+            }
+            else {
+                binder.forField(fieldComponent).bind(field.getName());
+                this.formLayout.add((Component) fieldComponent);
+            }
+        });
     }
 
     private HasValue<?, ?> createFieldOfType(Field field){
@@ -109,6 +136,9 @@ public class AutoGrid<T, ID, R extends CrudRepository<T, ID>> extends Composite<
         else if (field.getType().isAssignableFrom(LocalDateTime.class)){
             return new DateTimePicker(convertToReadableName(field.getName()));
         }
+        else if (Collection.class.isAssignableFrom(field.getType())) {
+            return new ComboBox<>(convertToReadableName(field.getName()));
+        }
         return new TextField(convertToReadableName(field.getName()));
     }
 
@@ -118,11 +148,11 @@ public class AutoGrid<T, ID, R extends CrudRepository<T, ID>> extends Composite<
     }
 
     private void createButtonLayout(Div editorLayoutDiv) {
-        HorizontalLayout buttonLayout = new HorizontalLayout();
+        var buttonLayout = new HorizontalLayout();
         buttonLayout.setClassName("button-layout");
-        Button cancel = new Button("Cancel", event -> clearForm());
+        var cancel = new Button("Cancel", event -> clearForm());
         cancel.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        Button save = new Button("Save", event -> {
+        var save = new Button("Save", event -> {
             try {
                 this.binder.writeBean(this.binder.getBean());
                 SpringContext.getBean(this.repository).save(this.binder.getBean());

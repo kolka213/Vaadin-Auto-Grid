@@ -4,23 +4,45 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
-@Entity(name = "TABLE_PERSON")
-@Table(name = "TABLE_PERSON")
+@Entity
+@Table(name = "sample_person")
 public class SamplePerson extends AbstractEntity {
 
+    @Column(name = "FIRST_NAME")
     private String firstName;
+    @Column(name = "LAST_NAME")
     private String lastName;
     @Email
+    @Column(name = "EMAIL")
     private String email;
+    @Column(name = "PHONE")
     private String phone;
+    @Column(name = "DATE_OF_BIRTH")
     private LocalDate dateOfBirth;
+    @Column(name = "OCCUPATION")
     private String occupation;
-    @Column(name = "ROLE")
-    @ElementCollection
+    @Column(name = "ROLES")
+    @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
-    private List<Role> role;
+    private List<Role> roles;
+    @Column(name = "IMPORTANT")
     private boolean important;
+
+    public SamplePerson() {
+    }
+
+    public SamplePerson(String firstName, String lastName, String email, String phone, LocalDate dateOfBirth, String occupation, List<Role> roles, boolean important) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.phone = phone;
+        this.dateOfBirth = dateOfBirth;
+        this.occupation = occupation;
+        this.roles = roles;
+        this.important = important;
+    }
 
     public String getFirstName() {
         return firstName;
@@ -58,11 +80,11 @@ public class SamplePerson extends AbstractEntity {
     public void setOccupation(String occupation) {
         this.occupation = occupation;
     }
-    public List<Role> getRole() {
-        return role;
+    public List<Role> getRoles() {
+        return roles;
     }
-    public void setRole(List<Role> role) {
-        this.role = role;
+    public void setRoles(List<Role> roles) {
+        this.roles = roles;
     }
     public boolean isImportant() {
         return important;
