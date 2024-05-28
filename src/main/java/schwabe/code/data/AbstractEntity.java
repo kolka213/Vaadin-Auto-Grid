@@ -1,11 +1,6 @@
 package schwabe.code.data;
 
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.MappedSuperclass;
-import jakarta.persistence.SequenceGenerator;
-import jakarta.persistence.Version;
+import jakarta.persistence.*;
 
 @MappedSuperclass
 public abstract class AbstractEntity {
@@ -16,8 +11,6 @@ public abstract class AbstractEntity {
     @SequenceGenerator(name = "idgenerator", initialValue = 1000)
     private Long id;
 
-    @Version
-    private int version;
 
     public Long getId() {
         return id;
@@ -25,10 +18,6 @@ public abstract class AbstractEntity {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public int getVersion() {
-        return version;
     }
 
     @Override

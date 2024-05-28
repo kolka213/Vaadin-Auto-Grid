@@ -2,9 +2,9 @@ package schwabe.code.data;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
+
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Table(name = "sample_person")
