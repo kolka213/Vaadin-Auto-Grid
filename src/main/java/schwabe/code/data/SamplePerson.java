@@ -23,12 +23,12 @@ public class SamplePerson extends AbstractEntity {
     private LocalDate dateOfBirth;
     @Column(name = "OCCUPATION")
     private String occupation;
+    @Column(name = "IMPORTANT")
+    private boolean important;
     @Column(name = "ROLES")
     @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
     private List<Role> roles;
-    @Column(name = "IMPORTANT")
-    private boolean important;
 
     public SamplePerson() {
     }
