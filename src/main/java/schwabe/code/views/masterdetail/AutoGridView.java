@@ -20,11 +20,10 @@ public class AutoGridView extends Div {
         this.personService = personService;
         setSizeFull();
         var autoGrid = new AutoGrid<>(SamplePerson.class, SamplePersonRepository.class);
-        autoGrid.addCollectionColumnField(
+        autoGrid.setCollectionFieldRenderer(
                 "roles",
-                AutoGrid.CollectionComponentType.BADGE,
+                AutoGrid.CollectionComponentType.COMBOBOX,
                 role -> CapitalizeHelper.convertToReadableName(String.valueOf(role)));
-
         add(autoGrid);
     }
 }

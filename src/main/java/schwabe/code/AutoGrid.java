@@ -53,7 +53,7 @@ public class AutoGrid<T, ID, R extends CrudRepository<T, ID>> extends Composite<
     private final Grid<T> grid;
     private final Class<R> repository;
     private final Class<T> bean;
-    private final Map<Field, HasListDataView<String, AbstractListDataView<String>>> fieldHasValueMap;
+    private final Map<Field, HasListDataView<String, AbstractListDataView<String>>> fieldComponentMap;
     private final Map<Field, ItemLabelGenerator<Object>> fieldItemLabelGeneratorMap;
     private CollectionComponentType displayType = CollectionComponentType.COMBOBOX;
 
@@ -63,7 +63,7 @@ public class AutoGrid<T, ID, R extends CrudRepository<T, ID>> extends Composite<
         this.grid = new Grid<>(this.bean);
         this.orderColumnsByEntity();
         this.grid.getColumns().forEach(tColumn -> tColumn.setAutoWidth(true));
-        this.fieldHasValueMap = new HashMap<>();
+        this.fieldComponentMap = new HashMap<>();
         this.fieldItemLabelGeneratorMap = new HashMap<>();
         var splitLayout = new SplitLayout();
         splitLayout.setSplitterPosition(80);
@@ -75,7 +75,7 @@ public class AutoGrid<T, ID, R extends CrudRepository<T, ID>> extends Composite<
         this.grid.asSingleSelect().addValueChangeListener(event -> {
             if (event.getValue() != null) {
                 this.binder.setBean(event.getValue());
-                this.repopulateListFieldComponents(this.fieldHasValueMap, this.formLayout, event.getValue());
+                this.repopulateListFieldComponents(this.fieldComponentMap, this.formLayout, event.getValue());
             } else {
                 this.clearForm();
             }
@@ -84,6 +84,15 @@ public class AutoGrid<T, ID, R extends CrudRepository<T, ID>> extends Composite<
         this.getContent().add(splitLayout);
         this.getContent().setWidthFull();
         this.addClassNames("master-detail-view");
+    }
+
+
+    public CollectionComponentType getDisplayType() {
+        return displayType;
+    }
+
+    public Grid<T> getGrid() {
+        return grid;
     }
 
     public Grid.Column<T> setRendererForColumn(String property, Renderer<T> renderer) {
@@ -145,7 +154,7 @@ public class AutoGrid<T, ID, R extends CrudRepository<T, ID>> extends Composite<
             var fieldComponent = createFieldOfType(field);
             if (Collection.class.isAssignableFrom(field.getType())) {
                 //noinspection unchecked
-                this.fieldHasValueMap.put(field, (HasListDataView<String, AbstractListDataView<String>>) fieldComponent);
+                this.fieldComponentMap.put(field, (HasListDataView<String, AbstractListDataView<String>>) fieldComponent);
                 this.formLayout.add((Component) fieldComponent);
             } else {
                 binder.forField(fieldComponent).bind(field.getName());
@@ -198,7 +207,7 @@ public class AutoGrid<T, ID, R extends CrudRepository<T, ID>> extends Composite<
     private void clearForm() {
         this.binder.setBean(null);
         this.binder.refreshFields();
-        this.fieldHasValueMap.values().forEach(HasListDataView::setItems);
+        this.fieldComponentMap.values().forEach(HasListDataView::setItems);
     }
 
     private void refreshGrid() {
@@ -206,42 +215,45 @@ public class AutoGrid<T, ID, R extends CrudRepository<T, ID>> extends Composite<
         this.grid.getDataProvider().refreshAll();
     }
 
-    public void addCollectionColumnField(String property, CollectionComponentType displayType, ItemLabelGenerator<Object> itemLabelGenerator) {
+    public Grid.Column<T> setCollectionFieldRenderer(String property, CollectionComponentType displayType, ItemLabelGenerator<Object> itemLabelGenerator) {
         this.displayType = displayType;
-        var optField = fieldHasValueMap.keySet().stream().filter(key -> key.getName().equals(property)).findFirst();
-        optField.ifPresent(field -> {
-            if (!displayType.equals(CollectionComponentType.COMBOBOX)) {
-                int index = this.formLayout.getChildren().toList().indexOf((Component) fieldHasValueMap.get(field));
-                this.formLayout.remove((Component) this.fieldHasValueMap.get(field));
-                var badgeListComponent = new BadgeListComponent(CapitalizeHelper.convertCamelCaseToReadableName(field.getName()), displayType);
-                badgeListComponent.setFlexWrap(FlexLayout.FlexWrap.WRAP);
-                this.fieldHasValueMap.replace(field, this.fieldHasValueMap.get(field), badgeListComponent);
-                this.formLayout.addComponentAtIndex(index, (Component) fieldHasValueMap.get(field));
-            }
-            this.fieldItemLabelGeneratorMap.put(field, itemLabelGenerator);
-            this.setRendererForColumn(property, new ComponentRenderer<>((ValueProvider<T, Component>) item -> {
-                Component fieldOfType;
-                if (this.displayType.equals(CollectionComponentType.COMBOBOX)) {
-                    fieldOfType = (Component) createFieldOfType(field);
-                    fieldOfType.getElement().setProperty("label", "");
-                    fieldOfType.getElement().setAttribute("theme", "small");
-                } else {
-                    fieldOfType = new BadgeListComponent("", displayType);
-                    fieldOfType.getStyle().setWidth("300px");
-                    fieldOfType.setClassName(LumoUtility.Overflow.SCROLL);
+        var optField = fieldComponentMap.keySet().stream().filter(key -> key.getName().equals(property)).findFirst();
+        if (optField.isPresent()) {
+            var field = optField.get();
+                Grid.Column<T> column;
+                if (!displayType.equals(CollectionComponentType.COMBOBOX)) {
+                    int index = this.formLayout.getChildren().toList().indexOf((Component) fieldComponentMap.get(field));
+                    this.formLayout.remove((Component) this.fieldComponentMap.get(field));
+                    var badgeListComponent = new BadgeListComponent(CapitalizeHelper.convertCamelCaseToReadableName(field.getName()), displayType);
+                    badgeListComponent.setFlexWrap(FlexLayout.FlexWrap.WRAP);
+                    this.fieldComponentMap.replace(field, this.fieldComponentMap.get(field), badgeListComponent);
+                    this.formLayout.addComponentAtIndex(index, (Component) fieldComponentMap.get(field));
                 }
-                try {
-                    var val = (Collection<?>) new PropertyDescriptor(property, this.bean).getReadMethod().invoke(item);
-                    val = val.stream().map(i -> fieldItemLabelGeneratorMap.getOrDefault(field, String::valueOf).apply(i)).toList();
-                    //noinspection unchecked
-                    ((HasListDataView<String, AbstractListDataView<String>>) fieldOfType).setItems((Collection<String>) val);
-                    return (Component) fieldOfType;
-                } catch (IllegalAccessException | IntrospectionException | InvocationTargetException e) {
-                    throw new RuntimeException(e);
-                }
-            }));
-        });
-
+                this.fieldItemLabelGeneratorMap.put(field, itemLabelGenerator);
+                column = this.setRendererForColumn(property, new ComponentRenderer<>((ValueProvider<T, Component>) item -> {
+                    Component fieldOfType;
+                    if (this.displayType.equals(CollectionComponentType.COMBOBOX)) {
+                        fieldOfType = (Component) createFieldOfType(field);
+                        fieldOfType.getElement().setProperty("label", "");
+                        fieldOfType.getElement().setAttribute("theme", "small");
+                    } else {
+                        fieldOfType = new BadgeListComponent("", displayType);
+                        fieldOfType.setClassName(LumoUtility.Overflow.SCROLL);
+                        fieldOfType.getStyle().setWidth("200px");
+                    }
+                    try {
+                        var val = (Collection<?>) new PropertyDescriptor(property, this.bean).getReadMethod().invoke(item);
+                        val = val.stream().map(i -> fieldItemLabelGeneratorMap.getOrDefault(field, String::valueOf).apply(i)).toList();
+                        //noinspection unchecked
+                        ((HasListDataView<String, AbstractListDataView<String>>) fieldOfType).setItems((Collection<String>) val);
+                        return (Component) fieldOfType;
+                    } catch (IllegalAccessException | IntrospectionException | InvocationTargetException e) {
+                        throw new RuntimeException(e);
+                    }
+                }));
+                return column;
+        }
+        return null;
     }
 
     public static class BadgeListComponent extends Div implements HasListDataView<String, AbstractListDataView<String>> {
@@ -259,7 +271,7 @@ public class AutoGrid<T, ID, R extends CrudRepository<T, ID>> extends Composite<
             this.layout = new FlexLayout();
             this.layout.addClassNames(LumoUtility.Gap.SMALL);
             this.addClassNames(LumoUtility.Gap.SMALL);
-            this.setWidthFull();
+            this.setSizeUndefined();
             this.getElement().appendChild(ElementFactory.createLabel(label));
             this.add(this.layout);
         }
