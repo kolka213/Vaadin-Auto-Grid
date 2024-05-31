@@ -34,6 +34,15 @@
         <url>https://github.com/kolka213/Vaadin-Auto-Grid</url>
     </scm>
 
+    <distributionManagement>
+        <repository>
+            <id>ossrh</id>
+            <name>Central Repository OSSRH</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
+
     <developers>
         <developer>
             <name>Pascal Schwabe</name>
@@ -90,19 +99,6 @@
                 <configuration>
                     <scmCommentPrefix>[ci skip]</scmCommentPrefix>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>com.google.cloud.tools</groupId>
-                <artifactId>jib-maven-plugin</artifactId>
-                <version>${google.jib.version}</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>build</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
 
