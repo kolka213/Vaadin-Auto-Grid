@@ -46,6 +46,16 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+
+/**
+ * Creates a {@link Grid} and populates data from the given repository.
+ * The provided repository needs to be extending {@link CrudRepository}.
+ *
+ * <p>Currently supports only JPA Repositories.</p>
+ * @param <T> The java bean type, also known as Source
+ * @param <ID> The type of auto generated entity id, e.g {@link Long}
+ * @param <R> The class type of the repository
+ */
 public class AutoGrid<T, ID, R extends CrudRepository<T, ID>> extends Composite<Div> {
 
     private BeanValidationBinder<T> binder;
@@ -58,6 +68,11 @@ public class AutoGrid<T, ID, R extends CrudRepository<T, ID>> extends Composite<
     private final Map<Field, ItemLabelGenerator<Object>> fieldItemLabelGeneratorMap;
     private CollectionComponentType displayType = CollectionComponentType.COMBOBOX;
 
+    /**
+     * Basic constructor for creating an instance of Auto-Grid.
+     * @param bean the java bean
+     * @param repository the {@link CrudRepository} class
+     */
     public AutoGrid(Class<T> bean, Class<R> repository) {
         this.bean = bean;
         this.repository = repository;
@@ -88,19 +103,37 @@ public class AutoGrid<T, ID, R extends CrudRepository<T, ID>> extends Composite<
     }
 
 
+    /**
+     * Returns the display type of the collection fields.
+     * <p>See {@link CollectionComponentType} for available options.</p>
+     * @return
+     */
     public CollectionComponentType getDisplayType() {
         return displayType;
     }
 
+    /**
+     * Get the instance of the underlying {@link Grid}.
+     * @return the instance of Grid.
+     */
     public Grid<T> getGrid() {
         return grid;
     }
 
+    /**
+     * Set a {@link Renderer} for a specific {@link com.vaadin.flow.component.grid.Grid.Column}.
+     * @param property the field name of the source class
+     * @param renderer the component renderer
+     * @return a column instance for further chaining
+     */
     public Grid.Column<T> setRendererForColumn(String property, Renderer<T> renderer) {
         return this.grid.getColumnByKey(property).setRenderer(renderer);
     }
 
 
+    /**
+     * Reorder columns based on the field declaration order of the superclass, then actual entity.
+     */
     private void orderColumnsByEntity() {
         var declaredFields = Arrays.stream(this.bean.getDeclaredFields()).map(Field::getName).toList();
 
@@ -113,6 +146,12 @@ public class AutoGrid<T, ID, R extends CrudRepository<T, ID>> extends Composite<
         this.grid.setColumnOrder(Stream.concat(columnsNotFromEntity, columnsFromEntity).toList());
     }
 
+    /**
+     * Iterate over the collection type fields from the entity class and repopulate each field from the given object.
+     * @param fieldHasValueMap the map containing the {@link Field}->{@link Component} mapping
+     * @param formLayout layout component
+     * @param object bean object
+     */
     @SuppressWarnings("unchecked")
     private void repopulateListFieldComponents(Map<Field, HasListDataView<String, AbstractListDataView<String>>> fieldHasValueMap, FormLayout formLayout, T object) {
         fieldHasValueMap.forEach((key, value) -> {
@@ -128,6 +167,11 @@ public class AutoGrid<T, ID, R extends CrudRepository<T, ID>> extends Composite<
         });
     }
 
+    /**
+     * Get the spring bean of the given repository class and call {@link CrudRepository#findAll() findAll()}
+     * to populate the {@link Grid}.
+     * @param repository class definition
+     */
     private void populateData(Class<R> repository) {
         var instance = SpringContext.getBean(repository);
         this.grid.setItems(StreamSupport.stream(instance.findAll().spliterator(), false).toList());
@@ -216,6 +260,15 @@ public class AutoGrid<T, ID, R extends CrudRepository<T, ID>> extends Composite<
         this.grid.getDataProvider().refreshAll();
     }
 
+    /**
+     * Create a field renderer for a collection field of the entity class.
+     * Default is {@link CollectionComponentType#COMBOBOX} and creates a {@link ComboBox}
+     * and applies the {@link ItemLabelGenerator} to its items.
+     * @param property field name of the class
+     * @param displayType see {@link CollectionComponentType} for available options
+     * @param itemLabelGenerator the item label generator for the contents
+     * @return a {@link com.vaadin.flow.component.grid.Grid.Column} instance
+     */
     public Grid.Column<T> setCollectionFieldRenderer(String property, CollectionComponentType displayType, ItemLabelGenerator<Object> itemLabelGenerator) {
         this.displayType = displayType;
         var optField = fieldComponentMap.keySet().stream().filter(key -> key.getName().equals(property)).findFirst();
@@ -257,6 +310,9 @@ public class AutoGrid<T, ID, R extends CrudRepository<T, ID>> extends Composite<
         return null;
     }
 
+    /**
+     * Creates a list of {@link Span} component styled as badges.
+     */
     public static class BadgeListComponent extends Div implements HasListDataView<String, AbstractListDataView<String>> {
 
         private final String classNames;
@@ -277,6 +333,10 @@ public class AutoGrid<T, ID, R extends CrudRepository<T, ID>> extends Composite<
             this.add(this.layout);
         }
 
+        /**
+         * Sets the {@link com.vaadin.flow.component.orderedlayout.FlexLayout.FlexWrap} behaviour of the badge list container.
+         * @param flexWrap
+         */
         public void setFlexWrap(FlexLayout.FlexWrap flexWrap){
             this.layout.setFlexWrap(flexWrap);
         }
@@ -318,6 +378,10 @@ public class AutoGrid<T, ID, R extends CrudRepository<T, ID>> extends Composite<
             return span;
         }
 
+        /**
+         * Returns the {@link DataProvider} instance.
+         * @return the instance
+         */
         public DataProvider<String, ?> getDataProvider() {
             return dataProvider.get();
         }

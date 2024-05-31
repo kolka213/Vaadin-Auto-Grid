@@ -5,12 +5,28 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.Serializable;
 import java.util.Locale;
 
+/**
+ * Static class that helps with string rendering.
+ */
 public class CapitalizeHelper implements Serializable {
-    public static String convertCamelCaseToReadableName(String name) {
-        return StringUtils.capitalize(StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(name), StringUtils.SPACE));
+
+    /**
+     * Converts a camel-case string to a readable capitalized string, like
+     * sTring -> String.
+     * @param string the input to modify
+     * @return capitalized readable string
+     */
+    public static String convertCamelCaseToReadableName(String string) {
+        return StringUtils.capitalize(StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(string), StringUtils.SPACE));
     }
 
-    public static String convertToReadableName(String name) {
-        return StringUtils.capitalize(name.toLowerCase(Locale.ROOT));
+    /**
+     * Convert any String to capitalize the first letter and lower case all remaining letters,
+     * like sTring_ -> String_.
+     * @param string the input to modify
+     * @return capitalized readable string
+     */
+    public static String convertToReadableName(String string) {
+        return StringUtils.capitalize(string.toLowerCase(Locale.ROOT));
     }
 }
