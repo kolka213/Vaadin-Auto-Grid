@@ -11,8 +11,8 @@ import java.util.Locale;
 public class CapitalizeHelper implements Serializable {
 
     /**
-     * Converts a camel-case string to a readable capitalized string, like
-     * sTring -> String.
+     * Converts a camel-case string to a readable capitalized string,
+     * like <p><strong>sTring -> String.</strong></p>
      * @param string the input to modify
      * @return capitalized readable string
      */
@@ -22,7 +22,7 @@ public class CapitalizeHelper implements Serializable {
 
     /**
      * Convert any String to capitalize the first letter and lower case all remaining letters,
-     * like sTring_ -> String_.
+     * like <p><strong>sTring_ -> String_.</strong></p>
      * @param string the input to modify
      * @return capitalized readable string
      */
