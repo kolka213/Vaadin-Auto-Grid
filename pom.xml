@@ -2,7 +2,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <!-- Project from https://start.vaadin.com/project/5a12d8ac-6044-48b4-963d-618571a38757 -->
     <groupId>schwabe.code</groupId>
     <artifactId>auto-grid</artifactId>
     <name>auto-grid</name>
@@ -16,6 +15,20 @@
         <vaadin.version>24.3.9</vaadin.version>
         <spring.version>2024.0.0</spring.version>
     </properties>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:git://github.com/kolka213/Vaadin-Auto-Grid.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:kolka213/Vaadin-Auto-Grid.git</developerConnection>
+        <url>https://github.com/kolka213/Vaadin-Auto-Grid</url>
+    </scm>
 
     <repositories>
         <repository>
