@@ -2,11 +2,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>schwabe.code</groupId>
+    <groupId>com.schwabe.code</groupId>
     <artifactId>auto-grid</artifactId>
-    <name>auto-grid</name>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
+
+    <name>auto-grid</name>
+    <description>A Auto-Grid server component for the Vaadin Flow Framework inspired by the Auto-Grid feature from Hilla.</description>
+    <url>https://github.com/kolka213/Vaadin-Auto-Grid</url>
 
     <properties>
         <java.version>17</java.version>
@@ -30,15 +33,14 @@
         <url>https://github.com/kolka213/Vaadin-Auto-Grid</url>
     </scm>
 
-    <repositories>
-        <repository>
-            <id>Vaadin Directory</id>
-            <url>https://maven.vaadin.com/vaadin-addons</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
+    <developers>
+        <developer>
+            <name>Pascal Schwabe</name>
+            <email>pascalschwabe@yahoo.de</email>
+            <organization>Github/kolka213</organization>
+            <organizationUrl>https://github.com/kolka213</organizationUrl>
+        </developer>
+    </developers>
 
     <dependencyManagement>
         <dependencies>
