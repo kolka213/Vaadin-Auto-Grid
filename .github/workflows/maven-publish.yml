@@ -1,34 +1,34 @@
 # This workflow will build a package using Maven and then publish it to GitHub packages when a release is created
 # For more information see: https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#apache-maven-with-a-settings-path
-
-name: Maven Package
+name: release version
 
 on:
-  push
+  push:
+    branches:
+      - master
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
-    env:
-      JAVA_HOME: /usr/lib/jvm/java-17-openjdk/
+    if: "!contains(github.event.head_commit.message, '[ci skip]')"
 
     steps:
-    - name: Java Maven release
-      # You may pin to the exact commit or the version.
-      # uses: qcastel/github-actions-maven-release@master
-      uses: qcastel/github-actions-maven-release@master
-      with:
-        # Filter the branch to execute the release on
-        # Enable gpg signing
-        gpg-enabled: true
-        # The GPG key ID
-        gpg-key-id: ${{ secrets.GPG_KEY_ID }}
-        # The GPG key
-        gpg-key: ${{ secrets.GPG_KEY }}
-        # The GPG passphrase
-        gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }} 
+      - uses: actions/checkout@v3
+
+      - name: Build and Test
+        uses: qcastel/github-actions-maven-cmd@master
+        with:
+          maven-args: "clean install"
+
+      - name: Release
+        uses: qcastel/github-actions-maven-release@master
+        env:
+          JAVA_HOME: /usr/lib/jvm/java-1/-openjdk/
+        with:
+          maven-args: "-Dmaven.javadoc.skip=true -Dmaven.deploy.skip=true"
+
+          gpg-enabled: true
+          gpg-key-id: ${{ secrets.GPG_KEY_ID }}
+          gpg-key: ${{ secrets.GPG_KEY }}
+          gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }} 
+
