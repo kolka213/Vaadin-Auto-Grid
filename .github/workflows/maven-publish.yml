@@ -1,0 +1,31 @@
+# This workflow will build a package using Maven and then publish it to GitHub packages when a release is created
+# For more information see: https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#apache-maven-with-a-settings-path
+
+name: Maven Package
+
+on:
+  push
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - name: Java Maven release
+      # You may pin to the exact commit or the version.
+      # uses: qcastel/github-actions-maven-release@master
+      uses: qcastel/github-actions-maven-release@v1.12.31
+      with:
+        # Filter the branch to execute the release on
+        # Enable gpg signing
+        gpg-enabled: true
+        # The GPG key ID
+        gpg-key-id: ${{ secrets.GPG_KEY_ID }}
+        # The GPG key
+        gpg-key: ${{ secrets.GPG_KEY }}
+        # The GPG passphrase
+        gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }} 
