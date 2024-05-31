@@ -17,6 +17,7 @@
         <maven.compiler.target>17</maven.compiler.target>
         <vaadin.version>24.3.9</vaadin.version>
         <spring.version>2024.0.0</spring.version>
+        <google.jib.version>2.7.1</google.jib.version>
     </properties>
 
     <licenses>
@@ -90,7 +91,21 @@
                     <scmCommentPrefix>[ci skip]</scmCommentPrefix>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>${google.jib.version}</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
+
     </build>
 
 </project>
