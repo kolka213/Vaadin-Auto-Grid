@@ -14,11 +14,14 @@ jobs:
       contents: read
       packages: write
 
+    env:
+      JAVA_HOME: /usr/lib/jvm/java-17-openjdk/
+
     steps:
     - name: Java Maven release
       # You may pin to the exact commit or the version.
       # uses: qcastel/github-actions-maven-release@master
-      uses: qcastel/github-actions-maven-release@v1.12.31
+      uses: qcastel/github-actions-maven-release@vmaster
       with:
         # Filter the branch to execute the release on
         # Enable gpg signing
