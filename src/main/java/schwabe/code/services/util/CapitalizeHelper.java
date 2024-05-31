@@ -1,4 +1,4 @@
-package schwabe.code;
+package schwabe.code.services.util;
 
 import org.apache.commons.lang3.StringUtils;
 

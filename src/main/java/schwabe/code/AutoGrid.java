@@ -30,7 +30,8 @@ import com.vaadin.flow.dom.ElementFactory;
 import com.vaadin.flow.function.ValueProvider;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import org.springframework.data.repository.CrudRepository;
-import schwabe.code.services.SpringContext;
+import schwabe.code.services.util.CapitalizeHelper;
+import schwabe.code.services.util.SpringContext;
 
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
